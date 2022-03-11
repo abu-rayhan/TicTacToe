@@ -3,8 +3,8 @@
 .data
 c db 1,2,3,4,5,6,7,8,9
 
-
-
+repeat db 'type y to play again or any key to quit','$'
+heading db 'Tic Tac Toe',10,13,'                                     IIT-JU','$'
 l1 db '  |  |  $'
 l2 db '_ _ _ _ _ _ _ _ _ _$'
 l3 db '| $'    
@@ -16,11 +16,15 @@ player db '0'
 enter db ' ::enter a position:$'
 won db ' won$'
 count db '0'
-tie db 'it is a tie.no one won$'
+tie db 'it is a tie.no one won$' 
+invalid db 10,13,'enter valid input$'
 .code
 main proc 
     mov ax,@data
     mov ds,ax
+    
+       
+    
     call board
     main_loop: 
         
@@ -29,6 +33,12 @@ main proc
         int 21h
         mov dl,13
         int 21h
+        
+        ;set cursor
+        mov ah,2
+        mov dh,20
+        mov dl,30
+        int 10h
         
         lea dx,msg
         mov ah,9
@@ -42,11 +52,14 @@ main proc
         lea dx,enter
         int 21h
         
+        inp:
         mov ah,1
         int 21h 
         sub al,49               
         mov bh,0
-        mov bl,al
+        mov bl,al 
+        
+        call valid
         
         call update
         call check 
@@ -56,12 +69,54 @@ main proc
         inc count
         cmp count,'9'
         je draw
-        call change_player 
+        call change_player  
+    valid:
+        mov bh,0
+        cmp c[bx],9
+        jg ne
+        ret
+        ne:  
+            
+            mov ah,9
+            lea dx,invalid
+            int 21h
+            jmp inp
+    reset:
+        lea si,c[0]
+        mov [si],1
+        
+        lea si,c[1]
+        mov [si],2 
+        
+        lea si,c[2]
+        mov [si],3
+        
+        lea si,c[3]
+        mov [si],4
+        
+        lea si,c[4]
+        mov [si],5
+        
+        lea si,c[5]
+        mov [si],6
+        
+        lea si,c[6]
+        mov [si],7
+        
+        lea si,c[7]
+        mov [si],8
+        
+        lea si,c[8]
+        mov [si],9 
+        
+        mov done,'0'
+        mov count,'0'
+        ret
     win:
         ;set cursor
         mov ah,2
         mov dh,20
-        mov dh,33
+        mov dl,30
         int 10h
         
         mov ah,9
@@ -77,19 +132,70 @@ main proc
         lea dx,won
         int 21h
         
-        jmp exit
+        ;set cursor
+        mov ah,2
+        mov dh,22
+        mov dl,30
+        int 10h
+         
+        mov ah,9
+        lea dx,repeat
+        int 21h
+        
+        mov ah,1
+        int 21h
+        cmp al,'y'
+        je label_repeat
+        jmp exit       
+        label_repeat: 
+            ;clear screen
+            mov ax,0600h
+            mov bh,07h
+            mov cx,0000h
+            mov dx,184fh 
+            int 10h 
+            call reset
+            call board
+            jmp main_loop 
+            
     draw:
     
         ;set cursor
         mov ah,2
         mov dh,20
-        mov dh,33
+        mov dl,30
         int 10h 
         
         lea dx,tie
         mov ah,9
+        int 21h 
+        
+        ;set cursor
+        mov ah,2
+        mov dh,22
+        mov dl,30
+        int 10h        
+        
+        mov ah,9 
+        lea dx,repeat
         int 21h
-        jmp exit 
+        
+        mov ah,1
+        int 21h
+        cmp al,'y'
+        je label_repeat1
+        jmp exit       
+        label_repeat1: 
+            ;clear screen
+            mov ax,0600h
+            mov bh,07h
+            mov cx,0000h
+            mov dx,184fh 
+            int 10h 
+            call reset
+            call board
+            jmp main_loop 
+            
         
     check:
         row_1:
@@ -199,7 +305,19 @@ main proc
         mov bh,07h
         mov cx,0000h
         mov dx,184fh 
+        int 10h 
+        
+        ;set cursor
+        mov ah,2
+        mov bh,0
+        mov dh,6
+        mov dl,35
         int 10h
+       
+    
+        mov ah,9
+        lea dx,heading
+        int 21h
         
         ;set cursor
         mov ah,2 
@@ -397,5 +515,3 @@ main proc
     main endp
 
 end main
-
-
